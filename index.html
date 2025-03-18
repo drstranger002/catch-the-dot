@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catch the Dot</title>
+  <style>
+    /* CSS */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #game-container {
+      text-align: center;
+      color: #fff;
+      width: 100%;
+      max-width: 400px; /* Limit maximum width for larger screens */
+    }
+
+    #game-title {
+      font-size: 2rem; /* Smaller font size for mobile */
+      margin-bottom: 10px;
+    }
+
+    #game-area {
+      position: relative;
+      width: 90%; /* Responsive width */
+      height: 300px; /* Fixed height for mobile */
+      background: #2c3e50;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 0 auto; /* Center the game area */
+    }
+
+    #dot {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: #e74c3c;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    #score {
+      font-size: 1.2rem; /* Smaller font size for mobile */
+      margin-top: 10px;
+    }
+
+    #timer {
+      font-size: 1rem; /* Smaller font size for mobile */
+      margin-top: 10px;
+    }
+
+    #start-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #start-button:hover {
+      background: #2ecc71;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <h1 id="game-title">Catch the Dot</h1>
+    <div id="game-area">
+      <div id="dot"></div>
+    </div>
+    <div id="score">Score: 0</div>
+    <div id="timer">Time: 30</div>
+    <button id="start-button">Start Game</button>
+  </div>
+
+  <script>
+    // JavaScript
+    const gameArea = document.getElementById('game-area');
+    const dot = document.getElementById('dot');
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const startButton = document.getElementById('start-button');
+
+    let score = 0;
+    let timeLeft = 30;
+    let gameInterval;
+    let timerInterval;
+
+    // Function to move the dot randomly
+    function moveDot() {
+      const x = Math.random() * (gameArea.offsetWidth - dot.offsetWidth);
+      const y = Math.random() * (gameArea.offsetHeight - dot.offsetHeight);
+      dot.style.left = `${x}px`;
+      dot.style.top = `${y}px`;
+    }
+
+    // Function to start the game
+    function startGame() {
+      score = 0;
+      timeLeft = 30;
+      scoreDisplay.textContent = `Score: ${score}`;
+      timerDisplay.textContent = `Time: ${timeLeft}`;
+      startButton.disabled = true;
+
+      // Move the dot every 800ms initially
+      clearInterval(gameInterval);
+      gameInterval = setInterval(moveDot, 800);
+
+      // Timer countdown
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = `Time: ${timeLeft}`;
+
+        // End game when time runs out
+        if (timeLeft <= 0) {
+          clearInterval(gameInterval);
+          clearInterval(timerInterval);
+          startButton.disabled = false;
+          alert(`Game Over! Your score is ${score}`);
+        } else {
+          // Increase difficulty by moving the dot faster
+          clearInterval(gameInterval);
+          gameInterval = setInterval(moveDot, 800 - score * 10);
+        }
+      }, 1000);
+    }
+
+    // Event listener for clicking the dot
+    dot.addEventListener('click', () => {
+      score++;
+      scoreDisplay.textContent = `Score: ${score}`;
+      moveDot();
+    });
+
+    // Event listener for the start button
+    startButton.addEventListener('click', startGame);
+
+    // Prevent touch scroll when tapping the dot
+    dot.addEventListener('touchstart', (e) => {
+      e.preventDefault(); // Prevent default touch behavior
+      score++;
+      scoreDisplay.textContent = `Score: ${score}`;
+      moveDot();
+    });
+
+    // Ensure the game area doesn't scroll on touch devices
+    gameArea.addEventListener('touchmove', (e) => {
+      e.preventDefault(); // Prevent scrolling
+    }, { passive: false });
+  </script>
+</body>
+</html>
