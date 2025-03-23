@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Catch the Dot</title>
   <style>
-    /* CSS */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #1a1a1a;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -21,58 +22,97 @@
       text-align: center;
       color: #fff;
       width: 100%;
-      max-width: 400px; /* Limit maximum width for larger screens */
+      max-width: 450px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
     }
 
     #game-title {
-      font-size: 2rem; /* Smaller font size for mobile */
-      margin-bottom: 10px;
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 1s ease-in;
     }
 
     #game-area {
       position: relative;
-      width: 90%; /* Responsive width */
-      height: 300px; /* Fixed height for mobile */
-      background: #2c3e50;
-      border-radius: 10px;
+      width: 90%;
+      height: 320px;
+      background: linear-gradient(45deg, #34495e, #2c3e50);
+      border-radius: 15px;
       overflow: hidden;
-      margin: 0 auto; /* Center the game area */
+      margin: 0 auto;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
 
     #dot {
       position: absolute;
       width: 30px;
       height: 30px;
-      background: #e74c3c;
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
       border-radius: 50%;
       cursor: pointer;
-      /* Initially hide the dot */
+      transition: left 0.3s ease, top 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 0 10px rgba(231, 76, 60, 0.8);
       display: none;
     }
 
-    #score {
-      font-size: 1.2rem; /* Smaller font size for mobile */
-      margin-top: 10px;
+    #dot:hover {
+      transform: scale(1.2);
     }
 
-    #timer {
-      font-size: 1rem; /* Smaller font size for mobile */
-      margin-top: 10px;
+    #score, #timer {
+      font-size: 1.3rem;
+      margin-top: 15px;
+      padding: 8px 15px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      display: inline-block;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Flashing animation for the score */
+    @keyframes flash {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.1); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    #score.flash {
+      animation: flash 0.5s ease infinite; /* Flashes repeatedly */
     }
 
     #start-button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 1rem;
-      background: #27ae60;
+      margin-top: 25px;
+      padding: 12px 30px;
+      font-size: 1.1rem;
+      background: linear-gradient(90deg, #27ae60, #2ecc71);
       color: #fff;
       border: none;
-      border-radius: 5px;
+      border-radius: 25px;
       cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(39, 174, 96, 0.5);
     }
 
     #start-button:hover {
-      background: #2ecc71;
+      background: linear-gradient(90deg, #2ecc71, #27ae60);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(39, 174, 96, 0.7);
+    }
+
+    #start-button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 10px rgba(39, 174, 96, 0.5);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -88,7 +128,6 @@
   </div>
 
   <script>
-    // JavaScript
     const gameArea = document.getElementById('game-area');
     const dot = document.getElementById('dot');
     const scoreDisplay = document.getElementById('score');
@@ -99,9 +138,8 @@
     let timeLeft = 30;
     let gameInterval;
     let timerInterval;
-    let gameActive = false;
 
-    // Function to move the dot randomly
+    // Function to move the dot smoothly
     function moveDot() {
       const x = Math.random() * (gameArea.offsetWidth - dot.offsetWidth);
       const y = Math.random() * (gameArea.offsetHeight - dot.offsetHeight);
@@ -111,21 +149,18 @@
 
     // Function to start the game
     function startGame() {
-      if (gameActive) return; // Prevent starting multiple games
-      
       score = 0;
       timeLeft = 30;
-      gameActive = true;
-      
       scoreDisplay.textContent = `Score: ${score}`;
       timerDisplay.textContent = `Time: ${timeLeft}`;
       startButton.disabled = true;
-      
-      // Show the dot and position it
+      scoreDisplay.classList.remove('flash'); // Remove flash class if present
+
+      // Show the dot and set its initial position
       dot.style.display = 'block';
       moveDot();
 
-      // Move the dot every 800ms initially
+      // Move the dot every 800ms
       clearInterval(gameInterval);
       gameInterval = setInterval(moveDot, 800);
 
@@ -135,31 +170,28 @@
         timeLeft--;
         timerDisplay.textContent = `Time: ${timeLeft}`;
 
-        // End game when time runs out
         if (timeLeft <= 0) {
-          endGame();
+          clearInterval(gameInterval);
+          clearInterval(timerInterval);
+          startButton.disabled = false;
+          dot.style.display = 'none'; // Hide dot when game ends
+          
+          // Flash the score
+          scoreDisplay.classList.add('flash');
+          setTimeout(() => {
+            scoreDisplay.classList.remove('flash'); // Stop flashing after alert
+            alert(`Game Over! Your score is ${score}`);
+          }, 2000); // Flash for 2 seconds before alert
         } else {
-          // Increase difficulty by moving the dot faster
+          // Increase difficulty
           clearInterval(gameInterval);
           gameInterval = setInterval(moveDot, 800 - score * 10);
         }
       }, 1000);
     }
-    
-    // Function to end the game
-    function endGame() {
-      clearInterval(gameInterval);
-      clearInterval(timerInterval);
-      gameActive = false;
-      startButton.disabled = false;
-      dot.style.display = 'none';
-      alert(`Game Over! Your score is ${score}`);
-    }
 
     // Event listener for clicking the dot
     dot.addEventListener('click', () => {
-      if (!gameActive) return; // Only count clicks when the game is active
-      
       score++;
       scoreDisplay.textContent = `Score: ${score}`;
       moveDot();
@@ -168,20 +200,16 @@
     // Event listener for the start button
     startButton.addEventListener('click', startGame);
 
-    // Prevent touch scroll when tapping the dot
+    // Prevent touch scroll and handle touch events
     dot.addEventListener('touchstart', (e) => {
-      e.preventDefault(); // Prevent default touch behavior
-      
-      if (!gameActive) return; // Only count touches when the game is active
-      
+      e.preventDefault();
       score++;
       scoreDisplay.textContent = `Score: ${score}`;
       moveDot();
     });
 
-    // Ensure the game area doesn't scroll on touch devices
     gameArea.addEventListener('touchmove', (e) => {
-      e.preventDefault(); // Prevent scrolling
+      e.preventDefault();
     }, { passive: false });
   </script>
 </body>
