@@ -56,7 +56,7 @@
       background: linear-gradient(135deg, #e74c3c, #c0392b);
       border-radius: 50%;
       cursor: pointer;
-      transition: left 0.3s ease, top 0.3s ease, transform 0.2s ease;
+      transition: left 0.3s ease, top 0.3s ease, transform 0.2s ease, background 0.5s ease, width 0.5s ease, height 0.5s ease;
       box-shadow: 0 0 10px rgba(231, 76, 60, 0.8);
       display: none;
     }
@@ -65,7 +65,7 @@
       transform: scale(1.2);
     }
 
-    #score, #timer {
+    #score, #timer, #high-score, #streak {
       font-size: 1.3rem;
       margin-top: 15px;
       padding: 8px 15px;
@@ -75,15 +75,18 @@
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
 
-    /* Flashing animation for the score */
     @keyframes flash {
       0% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.5; transform: scale(1.1); }
       100% { opacity: 1; transform: scale(1); }
     }
 
-    #score.flash {
-      animation: flash 0.5s ease infinite; /* Flashes repeatedly */
+    .flash {
+      animation: flash 0.3s ease 2;
+    }
+
+    #score.flash-end {
+      animation: flash 0.5s ease infinite;
     }
 
     #start-button {
@@ -124,7 +127,12 @@
     </div>
     <div id="score">Score: 0</div>
     <div id="timer">Time: 30</div>
+    <div id="high-score">High Score: 0</div>
+    <div id="streak">Streak: 0</div>
     <button id="start-button">Start Game</button>
+    <audio id="click-sound" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
+    <audio id="bonus-sound" src="https://www.soundjay.com/buttons/beep-07.mp3"></audio>
+    <audio id="game-over-sound" src="https://www.soundjay.com/misc/sounds/game-over-1.mp3"></audio>
   </div>
 
   <script>
@@ -132,12 +140,20 @@
     const dot = document.getElementById('dot');
     const scoreDisplay = document.getElementById('score');
     const timerDisplay = document.getElementById('timer');
+    const highScoreDisplay = document.getElementById('high-score');
+    const streakDisplay = document.getElementById('streak');
     const startButton = document.getElementById('start-button');
+    const clickSound = document.getElementById('click-sound');
+    const bonusSound = document.getElementById('bonus-sound');
+    const gameOverSound = document.getElementById('game-over-sound');
 
     let score = 0;
     let timeLeft = 30;
+    let streak = 0;
     let gameInterval;
     let timerInterval;
+    let highScore = localStorage.getItem('highScore') || 0;
+    highScoreDisplay.textContent = `High Score: ${highScore}`;
 
     // Function to move the dot smoothly
     function moveDot() {
@@ -147,24 +163,59 @@
       dot.style.top = `${y}px`;
     }
 
+    // Function to update dot appearance and return speed
+    function updateDotAppearance() {
+      const level = Math.floor(score / 10);
+      if (level >= 2) {
+        dot.style.width = '20px';
+        dot.style.height = '20px';
+        dot.style.background = 'linear-gradient(135deg, #f1c40f, #e67e22)'; // Gold
+      } else if (level >= 1) {
+        dot.style.width = '25px';
+        dot.style.height = '25px';
+        dot.style.background = 'linear-gradient(135deg, #8e44ad, #3498db)'; // Purple-Blue
+      } else {
+        dot.style.width = '30px';
+        dot.style.height = '30px';
+        dot.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)'; // Red
+      }
+      return Math.max(300, 800 - score * 15); // Speed increases with score
+    }
+
+    // Function to check for bonuses
+    function checkBonus() {
+      if (Math.random() < 0.15 && score > 5) {
+        dot.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)'; // Green bonus
+        setTimeout(() => {
+          updateDotAppearance(); // Revert to level-based appearance
+        }, 1000);
+        bonusSound.play();
+        return true;
+      }
+      return false;
+    }
+
     // Function to start the game
     function startGame() {
       score = 0;
       timeLeft = 30;
+      streak = 0;
       scoreDisplay.textContent = `Score: ${score}`;
       timerDisplay.textContent = `Time: ${timeLeft}`;
+      streakDisplay.textContent = `Streak: ${streak}`;
       startButton.disabled = true;
-      scoreDisplay.classList.remove('flash'); // Remove flash class if present
+      scoreDisplay.classList.remove('flash-end');
 
-      // Show the dot and set its initial position
+      // Ensure dot is visible and reset
       dot.style.display = 'block';
+      updateDotAppearance();
       moveDot();
 
-      // Move the dot every 800ms
+      // Start dot movement
       clearInterval(gameInterval);
-      gameInterval = setInterval(moveDot, 800);
+      gameInterval = setInterval(moveDot, updateDotAppearance());
 
-      // Timer countdown
+      // Start timer
       clearInterval(timerInterval);
       timerInterval = setInterval(() => {
         timeLeft--;
@@ -174,43 +225,80 @@
           clearInterval(gameInterval);
           clearInterval(timerInterval);
           startButton.disabled = false;
-          dot.style.display = 'none'; // Hide dot when game ends
-          
-          // Flash the score
-          scoreDisplay.classList.add('flash');
+          dot.style.display = 'none';
+
+          if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('highScore', highScore);
+            highScoreDisplay.textContent = `High Score: ${highScore}`;
+          }
+
+          scoreDisplay.classList.add('flash-end');
+          gameOverSound.play();
           setTimeout(() => {
-            scoreDisplay.classList.remove('flash'); // Stop flashing after alert
-            alert(`Game Over! Your score is ${score}`);
-          }, 2000); // Flash for 2 seconds before alert
+            scoreDisplay.classList.remove('flash-end');
+            alert(`Game Over! Final Score: ${score}\nHigh Score: ${highScore}`);
+          }, 2000);
         } else {
-          // Increase difficulty
           clearInterval(gameInterval);
-          gameInterval = setInterval(moveDot, 800 - score * 10);
+          gameInterval = setInterval(moveDot, updateDotAppearance());
         }
       }, 1000);
     }
 
     // Event listener for clicking the dot
     dot.addEventListener('click', () => {
-      score++;
+      streak++;
+      let points = 1;
+      if (checkBonus()) {
+        points = 5;
+        timeLeft += 2;
+        timerDisplay.textContent = `Time: ${timeLeft}`;
+      }
+      score += points * Math.ceil(streak / 5);
       scoreDisplay.textContent = `Score: ${score}`;
+      streakDisplay.textContent = `Streak: ${streak}`;
+      clickSound.play();
+      scoreDisplay.classList.add('flash');
+      setTimeout(() => scoreDisplay.classList.remove('flash'), 300);
       moveDot();
+      updateDotAppearance();
     });
 
-    // Event listener for the start button
+    // Event listener for start button
     startButton.addEventListener('click', startGame);
 
-    // Prevent touch scroll and handle touch events
+    // Touch support
     dot.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      score++;
+      streak++;
+      let points = 1;
+      if (checkBonus()) {
+        points = 5;
+        timeLeft += 2;
+        timerDisplay.textContent = `Time: ${timeLeft}`;
+      }
+      score += points * Math.ceil(streak / 5);
       scoreDisplay.textContent = `Score: ${score}`;
+      streakDisplay.textContent = `Streak: ${streak}`;
+      clickSound.play();
+      scoreDisplay.classList.add('flash');
+      setTimeout(() => scoreDisplay.classList.remove('flash'), 300);
       moveDot();
+      updateDotAppearance();
     });
 
     gameArea.addEventListener('touchmove', (e) => {
       e.preventDefault();
     }, { passive: false });
+
+    // Reset streak on miss
+    gameArea.addEventListener('click', (e) => {
+      if (e.target !== dot) {
+        streak = 0;
+        streakDisplay.textContent = `Streak: ${streak}`;
+      }
+    });
   </script>
 </body>
 </html>
