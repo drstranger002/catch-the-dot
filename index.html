@@ -46,6 +46,8 @@
       background: #e74c3c;
       border-radius: 50%;
       cursor: pointer;
+      /* Initially hide the dot */
+      display: none;
     }
 
     #score {
@@ -97,6 +99,7 @@
     let timeLeft = 30;
     let gameInterval;
     let timerInterval;
+    let gameActive = false;
 
     // Function to move the dot randomly
     function moveDot() {
@@ -108,11 +111,19 @@
 
     // Function to start the game
     function startGame() {
+      if (gameActive) return; // Prevent starting multiple games
+      
       score = 0;
       timeLeft = 30;
+      gameActive = true;
+      
       scoreDisplay.textContent = `Score: ${score}`;
       timerDisplay.textContent = `Time: ${timeLeft}`;
       startButton.disabled = true;
+      
+      // Show the dot and position it
+      dot.style.display = 'block';
+      moveDot();
 
       // Move the dot every 800ms initially
       clearInterval(gameInterval);
@@ -126,10 +137,7 @@
 
         // End game when time runs out
         if (timeLeft <= 0) {
-          clearInterval(gameInterval);
-          clearInterval(timerInterval);
-          startButton.disabled = false;
-          alert(`Game Over! Your score is ${score}`);
+          endGame();
         } else {
           // Increase difficulty by moving the dot faster
           clearInterval(gameInterval);
@@ -137,9 +145,21 @@
         }
       }, 1000);
     }
+    
+    // Function to end the game
+    function endGame() {
+      clearInterval(gameInterval);
+      clearInterval(timerInterval);
+      gameActive = false;
+      startButton.disabled = false;
+      dot.style.display = 'none';
+      alert(`Game Over! Your score is ${score}`);
+    }
 
     // Event listener for clicking the dot
     dot.addEventListener('click', () => {
+      if (!gameActive) return; // Only count clicks when the game is active
+      
       score++;
       scoreDisplay.textContent = `Score: ${score}`;
       moveDot();
@@ -151,6 +171,9 @@
     // Prevent touch scroll when tapping the dot
     dot.addEventListener('touchstart', (e) => {
       e.preventDefault(); // Prevent default touch behavior
+      
+      if (!gameActive) return; // Only count touches when the game is active
+      
       score++;
       scoreDisplay.textContent = `Score: ${score}`;
       moveDot();
