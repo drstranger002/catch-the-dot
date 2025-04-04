@@ -134,9 +134,6 @@
     <div id="high-score">High Score: 0</div>
     <div id="streak">Streak: 0</div>
     <button id="start-button">Start Game</button>
-    <audio id="click-sound" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
-    <audio id="bonus-sound" src="https://www.soundjay.com/buttons/beep-07.mp3"></audio>
-    <audio id="game-over-sound" src="https://www.soundjay.com/misc/sounds/game-over-1.mp3"></audio>
   </div>
 
   <script>
@@ -147,9 +144,6 @@
     const highScoreDisplay = document.getElementById('high-score');
     const streakDisplay = document.getElementById('streak');
     const startButton = document.getElementById('start-button');
-    const clickSound = document.getElementById('click-sound');
-    const bonusSound = document.getElementById('bonus-sound');
-    const gameOverSound = document.getElementById('game-over-sound');
 
     let score = 0;
     let timeLeft = 30;
@@ -193,7 +187,6 @@
         setTimeout(() => {
           updateDotAppearance(); // Revert to level-based appearance
         }, 1000);
-        bonusSound.play();
         return true;
       }
       return false;
@@ -238,7 +231,6 @@
           }
 
           scoreDisplay.classList.add('flash-end');
-          gameOverSound.play();
           setTimeout(() => {
             scoreDisplay.classList.remove('flash-end');
             alert(`Game Over! Final Score: ${score}\nHigh Score: ${highScore}`);
@@ -262,7 +254,6 @@
       score += points * Math.ceil(streak / 5);
       scoreDisplay.textContent = `Score: ${score}`;
       streakDisplay.textContent = `Streak: ${streak}`;
-      clickSound.play();
       scoreDisplay.classList.add('flash');
       setTimeout(() => scoreDisplay.classList.remove('flash'), 300);
       moveDot();
@@ -285,7 +276,6 @@
       score += points * Math.ceil(streak / 5);
       scoreDisplay.textContent = `Score: ${score}`;
       streakDisplay.textContent = `Streak: ${streak}`;
-      clickSound.play();
       scoreDisplay.classList.add('flash');
       setTimeout(() => scoreDisplay.classList.remove('flash'), 300);
       moveDot();
